@@ -6,8 +6,11 @@
 #include <SDL/SDL_draw.h>
 #include <algorithm>
 
-const int WALL_LEN = 64;
 
+const int S_WIDTH = 600;
+const int S_HEIGHT = 600;
+const int WALL_LEN = 16;
+const int MAZE_SQUARE = 30;
 
 class Cell {
 
@@ -24,6 +27,7 @@ public:
     Cell() {
         this->x = 0;
         this->y = 0;
+        this->size = 0;
         this->visited = false;
         this->hasLeft = true;
         this->hasRight = true;
@@ -32,110 +36,93 @@ public:
     }
 
     void drawCell(SDL_Surface *surface){
-        SDL_Rect square;
-        square.h = WALL_LEN;
-        square.w = WALL_LEN;
-        square.x = this->x * WALL_LEN;
-        square.y = this->y * WALL_LEN;
-        SDL_FillRect(surface, &square, 0);
+        Draw_VLine(surface, this->x * this->size + this->size, this->y *  this->size, this->y * this->size + this->size, 5000);
+        Draw_HLine(surface, this->x * this->size, this->y * this->size + this->size, this->x * this->size + this->size, 5000);
+        Draw_VLine(surface, this->x * this->size, this->y *  this->size, this->y * this->size + this->size, 5000);
+        Draw_HLine(surface, this->x * this->size, this->y *  this->size, this->x * this->size + this->size, 5000);
     }
 
     void destroyRight(SDL_Surface *surface){
         this->hasRight = false;
-        Draw_VLine(surface, this->x * WALL_LEN + WALL_LEN, this->y *  WALL_LEN, this->y * WALL_LEN + WALL_LEN, 5000);
+        Draw_VLine(surface, this->x * this->size + this->size, this->y *  this->size, this->y * this->size + this->size, 0);
     }
 
     void destroyBottom(SDL_Surface *surface){
         this->hasDown = false;
-        Draw_HLine(surface, this->x * WALL_LEN + WALL_LEN, this->y *  WALL_LEN, this->x * WALL_LEN + WALL_LEN, 5000);
+        Draw_HLine(surface, this->x * this->size, this->y * this->size + this->size, this->x * this->size + this->size, 0);
     }
 
     void destroyLeft(SDL_Surface *surface){
         this->hasLeft = false;
-        Draw_VLine(surface, this->x * WALL_LEN, this->y *  WALL_LEN, this->y * WALL_LEN + WALL_LEN, 5000);
+        Draw_VLine(surface, this->x * this->size, this->y *  this->size, this->y * this->size + this->size, 0);
     }
 
     void destroyTop(SDL_Surface *surface){
         this->hasUp = false;
-        Draw_HLine(surface, this->x * WALL_LEN, this->y *  WALL_LEN, this->x * WALL_LEN + WALL_LEN, 5000);
+        Draw_HLine(surface, this->x * this->size, this->y *  this->size, this->x * this->size + this->size, 0);
     }
 
 };
 
 using namespace std;
 
-Cell *backToUnvisitedCell(Cell grid[10][10]);
+Cell *backToUnvisitedCell(Cell maze[MAZE_SQUARE][MAZE_SQUARE]);
 
 int main(int argc, char *argv[]) {
-    Cell grid[10][10];
+    Cell maze[MAZE_SQUARE][MAZE_SQUARE];
     SDL_Surface *screen;
     SDL_Init(SDL_INIT_EVERYTHING);
-    screen = SDL_SetVideoMode(640, 640, 32, SDL_HWSURFACE);
+    screen = SDL_SetVideoMode(S_WIDTH, S_HEIGHT, 32, SDL_HWSURFACE);
     if (!screen) {
-        cout << "SDL MODE FAILED: %s\n" << SDL_GetError();
+        cout << "SDL FAIL";
         atexit(SDL_Quit);
         return 3;
     }
-    SDL_FillRect(screen, NULL, 0xffffff);
-    SDL_FillRect(screen, NULL, SDL_MapRGB(screen->format, 0xFF, 0xFF, 0xFF)); //white background
-    for (int i = 0; i < 10; i++) {
-        for (int j = 0; j < 10; j++) {
-            grid[i][j].x = j;
-            grid[i][j].y = i;
-            grid[i][j].drawCell(screen);
+    SDL_FillRect(screen, NULL, 0);
+    for (int i = 0; i < MAZE_SQUARE; i++) {
+        for (int j = 0; j < MAZE_SQUARE; j++) {
+            maze[i][j].x = j;
+            maze[i][j].y = i;
+            maze[i][j].size = WALL_LEN;
+            maze[i][j].drawCell(screen);
         }
     }
-    SDL_Rect verticalLine;
-    verticalLine.h = WALL_LEN;
-    verticalLine.w = 1;
-    SDL_Rect horizontalLine;
-    horizontalLine.h = 1;
-    horizontalLine.w = WALL_LEN;
-    SDL_Flip(screen);
-    Cell *currentCell = &grid[0][0];
+    Cell *currentCell = &maze[0][0];
     Cell *compare;
     int nextDirection[4] = {1, 2, 3, 4};
-    srand(time(0)); //we use this to override the default random shuffle seed
-    random_shuffle(&nextDirection[0], &nextDirection[3]);
-
+    srand(time(0));
     while (!currentCell->visited) {
         (*currentCell).visited = true;
         random_shuffle(&nextDirection[0], &nextDirection[4]);
         for (int i = 0; i < 4; i++) {
             if (nextDirection[i] == 1 && (*currentCell).hasUp && (*currentCell).y >= 1 &&
-                !grid[currentCell->y - 1][currentCell->x].visited) {
+                !maze[currentCell->y - 1][currentCell->x].visited) {
                 currentCell->destroyTop(screen);
-
-                currentCell = &grid[currentCell->y - 1][currentCell->x];
+                currentCell = &maze[currentCell->y - 1][currentCell->x];
                 (*currentCell).hasDown = false;
                 break;
-            } else if (nextDirection[i] == 2 && currentCell->hasRight && currentCell->x <= 8 &&
-                       !grid[currentCell->y][currentCell->x + 1].visited) {
+            } else if (nextDirection[i] == 2 && currentCell->hasRight && currentCell->x <= MAZE_SQUARE - 2 &&
+                       !maze[currentCell->y][currentCell->x + 1].visited) {
                 currentCell->destroyRight(screen);
-
-                currentCell = &grid[(*currentCell).y][(*currentCell).x + 1];
+                currentCell = &maze[(*currentCell).y][(*currentCell).x + 1];
                 (*currentCell).hasLeft = false;
                 break;
-            } else if (nextDirection[i] == 3 && currentCell->hasDown && currentCell->y <= 8 &&
-                       !grid[currentCell->y + 1][currentCell->x].visited) {
-
+            } else if (nextDirection[i] == 3 && currentCell->hasDown && currentCell->y <= MAZE_SQUARE - 2 &&
+                       !maze[currentCell->y + 1][currentCell->x].visited) {
                 currentCell->destroyBottom(screen);
-
-                currentCell = &grid[(*currentCell).y + 1][(*currentCell).x];
+                currentCell = &maze[(*currentCell).y + 1][(*currentCell).x];
                 (*currentCell).hasUp = false;
                 break;
             } else if (nextDirection[i] == 4 && currentCell->hasLeft && currentCell->x >= 1 &&
-                       !grid[currentCell->y][currentCell->x - 1].visited) {
-
+                       !maze[currentCell->y][currentCell->x - 1].visited) {
                 currentCell->destroyLeft(screen);
-
-                currentCell = &grid[(*currentCell).y][(*currentCell).x - 1];
+                currentCell = &maze[(*currentCell).y][(*currentCell).x - 1];
                 (*currentCell).hasRight = false;
                 break;
 
             } else if (i == 3) {
                 compare = currentCell;
-                currentCell = backToUnvisitedCell(grid);
+                currentCell = backToUnvisitedCell(maze);
                 if (compare != currentCell) {
                     (*currentCell).visited = false;
                 }
@@ -146,28 +133,26 @@ int main(int argc, char *argv[]) {
         }
     }
 
-    // The window is open: could enter program loop here (see SDL_PollEvent())
-
-    SDL_Delay(3000);  // Pause execution for 3000 milliseconds, for example
-
-    // Close and destroy the window
-
-    // Clean up
-    SDL_Quit();
+    SDL_Event event;
+    while(SDL_WaitEvent(&event)){
+        if (event.type == SDL_QUIT || (event.type == SDL_KEYDOWN && event.key.keysym.sym == SDLK_ESCAPE)){
+            atexit(SDL_Quit);
+            return 0;
+        }
+    }
     return 0;
 }
 
-Cell *backToUnvisitedCell(Cell grid[10][10]) {
-    for (int i = 0; i < 10; i++) {
-        for (int j = 0; j < 10; j++) {
-            if (grid[i][j].visited && ((!(grid[i + 1][j].visited) && i <= 8) || (!(grid[i - 1][j].visited) && i >= 1) ||
-                                       (!(grid[i][j + 1].visited) && j <= 8) ||
-                                       (!(grid[i][j - 1].visited) && j >= 1))) {
-                //we still have areas to explore here
-                return &grid[i][j];
+Cell *backToUnvisitedCell(Cell maze[MAZE_SQUARE][MAZE_SQUARE]) {
+    for (int i = 0; i < MAZE_SQUARE; i++) {
+        for (int j = 0; j < MAZE_SQUARE; j++) {
+            if (maze[i][j].visited && ((!(maze[i + 1][j].visited) && i <= MAZE_SQUARE - 2) || (!(maze[i - 1][j].visited) && i >= 1) ||
+                                       (!(maze[i][j + 1].visited) && j <= MAZE_SQUARE - 2) ||
+                                       (!(maze[i][j - 1].visited) && j >= 1))) {
+                return &maze[i][j];
             }
         }
     }
     //returning the first visited Cell
-    return &grid[0][0];
+    return &maze[0][0];
 }
