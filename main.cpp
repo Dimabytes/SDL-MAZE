@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <cstdlib>
-#include<ctime>
-#include<iostream>
+#include <ctime>
+#include <iostream>
 #include <SDL/SDL.h>
 #include <SDL/SDL_draw.h>
 #include <algorithm>
@@ -12,8 +12,8 @@ const int S_HEIGHT = 600;
 const int WALL_LEN = 16;
 const int MAZE_SQUARE = 30;
 
-class Cell {
 
+class Cell {
 public:
     int x;
     int y;
@@ -128,7 +128,6 @@ int main(int argc, char *argv[]) {
                 }
                 break;
             }
-
             SDL_Flip(screen);
         }
     }
