@@ -6,12 +6,10 @@
 #include <SDL/SDL_draw.h>
 #include <algorithm>
 
-
 const int S_WIDTH = 600;
 const int S_HEIGHT = 600;
-const int WALL_LEN = 16;
-const int MAZE_SQUARE = 30;
-
+const int WALL_LEN = 20;
+const int MAZE_SQUARE = 20;
 
 class Cell {
 public:
@@ -66,7 +64,7 @@ public:
 
 using namespace std;
 
-Cell *backToUnvisitedCell(Cell maze[MAZE_SQUARE][MAZE_SQUARE]);
+Cell *newCell(Cell maze[MAZE_SQUARE][MAZE_SQUARE]);
 
 int main(int argc, char *argv[]) {
     Cell maze[MAZE_SQUARE][MAZE_SQUARE];
@@ -122,16 +120,15 @@ int main(int argc, char *argv[]) {
 
             } else if (i == 3) {
                 compare = currentCell;
-                currentCell = backToUnvisitedCell(maze);
+                currentCell = newCell(maze);
                 if (compare != currentCell) {
                     (*currentCell).visited = false;
                 }
                 break;
             }
-            SDL_Flip(screen);
         }
     }
-
+    SDL_Flip(screen);
     SDL_Event event;
     while(SDL_WaitEvent(&event)){
         if (event.type == SDL_QUIT || (event.type == SDL_KEYDOWN && event.key.keysym.sym == SDLK_ESCAPE)){
@@ -142,16 +139,16 @@ int main(int argc, char *argv[]) {
     return 0;
 }
 
-Cell *backToUnvisitedCell(Cell maze[MAZE_SQUARE][MAZE_SQUARE]) {
+Cell *newCell(Cell maze[MAZE_SQUARE][MAZE_SQUARE]) {
     for (int i = 0; i < MAZE_SQUARE; i++) {
         for (int j = 0; j < MAZE_SQUARE; j++) {
-            if (maze[i][j].visited && ((!(maze[i + 1][j].visited) && i <= MAZE_SQUARE - 2) || (!(maze[i - 1][j].visited) && i >= 1) ||
-                                       (!(maze[i][j + 1].visited) && j <= MAZE_SQUARE - 2) ||
-                                       (!(maze[i][j - 1].visited) && j >= 1))) {
+            if (maze[i][j].visited &&
+                ((!(maze[i + 1][j].visited) && i <= MAZE_SQUARE - 2) || (!(maze[i - 1][j].visited) && i >= 1) ||
+                 (!(maze[i][j + 1].visited) && j <= MAZE_SQUARE - 2) ||
+                 (!(maze[i][j - 1].visited) && j >= 1))) {
                 return &maze[i][j];
             }
         }
     }
-    //returning the first visited Cell
     return &maze[0][0];
 }
