@@ -1,6 +1,11 @@
-cmake_minimum_required(VERSION 3.15)
-project(2)
+cmake_minimum_required(VERSION 3.7)
+project(maze)
+set(CMAKE_CXX_STANDARD 11)
 
-set(CMAKE_CXX_STANDARD 98)
+add_executable(maze main.cpp menu.cpp maze.cpp)
 
-add_executable(2 main.cpp)
+target_link_libraries(maze SDL)
+target_link_libraries(maze SDL_ttf)
+target_link_libraries(maze SDL_draw)
+
+
