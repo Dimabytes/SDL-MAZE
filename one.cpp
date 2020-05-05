@@ -13,10 +13,20 @@ const int MAZE_SQUARE = 20;
 
 using namespace std;
 
-class Cell {
+class Figure {
 public:
     int x;
     int y;
+
+    Figure() {
+        this->x = 0;
+        this->y = 0;
+    }
+
+};
+
+class Cell : public Figure {
+public:
     int size;
     bool visited;
     bool hasLeft;
@@ -25,8 +35,6 @@ public:
     bool hasUp;
 
     Cell() {
-        this->x = 0;
-        this->y = 0;
         this->size = 0;
         this->visited = false;
         this->hasLeft = true;
